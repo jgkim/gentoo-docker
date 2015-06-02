@@ -1,0 +1,15 @@
+# We don't want man pages installed
+-*virtual/man
+-*sys-apps/man-pages
+
+# Here we remove packages that have no business being in Docker containers
+-*virtual/ssh
+-*virtual/dev-manager
+-*virtual/service-manager
+-*sys-apps/openrc
+-*virtual/modutils
+-*sys-apps/kbd
+-*sys-process/procps
+-*sys-process/psmisc
+-*sys-apps/busybox
+-*sys-fs/e2fsprogs

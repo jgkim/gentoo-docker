@@ -1,0 +1,73 @@
+#!/bin/sh
+
+# Copyright (c) 2006-2015 by Michael Hampicke and James G. Kim
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+if [ ! -f /usr/bin/equery ]
+  then
+    echo "/usr/bin/equery does NOT exist!"
+    echo "Please emerge app-portage/gentoolkit"
+    exit 1
+fi
+
+echo "Creating a list of installed packages..."
+
+equery list '*' | sed --expression='s/-[0-9].*$//' > .rsync_exclude.tmp
+
+echo "Building rsync_exclude..."
+
+cat .rsync_exclude.tmp | sed --expression='s/^/+ /' --expression='s/$/\//' > /etc/portage/rsync_exclude
+
+echo "- /*-*/*/"    >> /etc/portage/rsync_exclude
+echo "- virtual/*/" >> /etc/portage/rsync_exclude
+
+cat .rsync_exclude.tmp | \
+  sed --expression='s/^/+ metadata\/md5-cache\//' \
+      --expression='s/$/*/' \
+>> /etc/portage/rsync_exclude
+
+echo "- metadata/md5-cache/*/*" >> /etc/portage/rsync_exclude
+
+echo "- licenses/" >> /etc/portage/rsync_exclude
+
+echo "+ profiles/arch/amd64/"          >> /etc/portage/rsync_exclude
+echo "+ profiles/arch/base/"           >> /etc/portage/rsync_exclude
+echo "+ profiles/default/linux/amd64/" >> /etc/portage/rsync_exclude
+
+echo "- profiles/arch/*/"          >> /etc/portage/rsync_exclude
+echo "- profiles/default/bsd/"     >> /etc/portage/rsync_exclude
+echo "- profiles/default/linux/*/" >> /etc/portage/rsync_exclude
+echo "- profiles/embedded/"        >> /etc/portage/rsync_exclude
+echo "- profiles/hardened/"        >> /etc/portage/rsync_exclude
+echo "- profiles/prefix/"          >> /etc/portage/rsync_exclude
+echo "- profiles/uclibc/"          >> /etc/portage/rsync_exclude
+
+rm --force .rsync_exclude.tmp
+
+echo "Purging unmerged portages..."
+
+echo "PORTAGE_RSYNC_EXTRA_OPTS=\"--exclude-from=/etc/portage/rsync_exclude --delete-excluded --filter='P packages/' --prune-empty-dirs\"" >> /etc/portage/make.conf
+
+set -e
+
+emerge --sync --quiet
+emerge --metadata
+egencache --update --repo gentoo
+
+sed --in-place 's/^PORTAGE_RSYNC_EXTRA_OPTS=.*$//' /etc/portage/make.conf
+rm --force /etc/portage/rsync_exclude
+
+echo "Done"
+echo "The next run of \"emerge --sync\" will repopulate the portage tree."
