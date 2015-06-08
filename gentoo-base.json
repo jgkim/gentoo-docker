@@ -1,0 +1,58 @@
+{
+  "variables": {
+    "docker_email": "",
+    "docker_username": "",
+    "docker_password": "",
+    "maintainer": ""
+  },
+
+  "builders": [{
+    "type": "docker",
+    "image": "jgkim/gentoo-stage3",
+    "volumes": {
+      "{{pwd}}/packages": "/usr/portage/packages"
+    },
+    "export_path": "gentoo-base.tar"
+  }],
+
+  "provisioners": [{
+    "type": "file",
+    "source": "tmp",
+    "destination": "/"
+  },{
+    "type": "shell",
+    "inline": [
+      "set -e",
+      "chmod +x /tmp/base.sh && /tmp/base.sh",
+      "rm --force /tmp/*"
+    ]
+  }],
+
+  "post-processors": [
+    [{
+      "type": "docker-import",
+      "repository": "jgkim/gentoo-base"
+    }, {
+      "type": "docker-dockerfile",
+      "maintainer": "{{user `maintainer`}}",
+      "cmd": ["/bin/bash"],
+      "volume": ["/usr/portage/packages"]
+    }, {
+      "type": "docker-tag",
+      "repository": "jgkim/gentoo-base",
+      "tag": "{{isotime \"20060102\"}}",
+      "force": true
+    }, {
+      "type": "docker-tag",
+      "repository": "jgkim/gentoo-base",
+      "tag": "latest",
+      "force": true
+    }, {
+      "type": "docker-push",
+      "login": true,
+      "login_email": "{{user `docker_email`}}",
+      "login_username": "{{user `docker_username`}}",
+      "login_password": "{{user `docker_password`}}"
+    }]
+  ]
+}

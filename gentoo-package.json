@@ -1,0 +1,53 @@
+{
+  "variables": {
+    "docker_email": "",
+    "docker_username": "",
+    "docker_password": "",
+    "maintainer": "",
+
+    "name": "",
+    "packages": "",
+    "cmd": ""
+  },
+
+  "builders": [{
+    "type": "docker",
+    "image": "jgkim/gentoo-base",
+    "volumes": {
+      "{{pwd}}/packages": "/usr/portage/packages"
+    },
+    "commit": true
+  }],
+
+  "provisioners": [{
+    "type": "shell",
+    "inline": [
+      "set -e",
+      "emerge --quiet {{user `packages`}}"
+    ]
+  }],
+
+  "post-processors": [
+    [{
+      "type": "docker-dockerfile",
+      "maintainer": "{{user `maintainer`}}",
+      "cmd": "{{user `cmd`}}"
+    }, {
+      "type": "docker-tag",
+      "repository": "jgkim/gentoo-{{user `name`}}",
+      "tag": "{{isotime \"20060102\"}}",
+      "force": true
+    }, {
+      "type": "docker-tag",
+      "repository": "jgkim/gentoo-{{user `name`}}",
+      "tag": "latest",
+      "force": true
+    }, {
+      "type": "docker-push",
+      "login": true,
+      "login_email": "{{user `docker_email`}}",
+      "login_username": "{{user `docker_username`}}",
+      "login_password": "{{user `docker_password`}}"
+    }]
+  ]
+}

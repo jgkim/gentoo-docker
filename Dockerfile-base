@@ -7,7 +7,8 @@ COPY bin /bin/
 COPY tmp /tmp/
 
 # Install a stage tarball and the Gentoo base system
-RUN /tmp/stage3.sh && /tmp/base.sh && rm --force /tmp/*
+RUN /tmp/stage3.sh && /tmp/base.sh && \
+    rm --force --recursive /tmp/* /usr/portage/packages/*
 
 # Create a mount point for binary packages
 VOLUME ["/usr/portage/packages"]

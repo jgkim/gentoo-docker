@@ -1,0 +1,18 @@
+FROM jgkim/gentoo-base
+
+MAINTAINER James G. Kim <jgkim@jayg.org>
+
+# Copy binary packages to the container
+COPY packages /usr/portage/packages/
+
+# Install build tools
+RUN emerge --quiet gcc binutils libtool bison && \
+		emerge --sync --quiet && \
+    rm --force --recursive /usr/portage/packages/*
+
+# Create a mount point for binary packages
+VOLUME ["/usr/portage/packages"]
+
+# Entry point for building packages
+ENTRYPOINT ["emerge"]
+CMD ["--quiet"]

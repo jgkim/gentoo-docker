@@ -8,7 +8,9 @@ Gentoo is a free operating system based on either Linux or FreeBSD that can be a
 
 # About this image
 
-Since Gentoo is a rolling release distribution, the `jgkim/gentoo-base:latest` tag will always point the most recently built image. This image lacks build tools such as GCC, Binutils, Libtool, Autotools, etc. Thus, binary packages can only be emerged with this image.
+Since Gentoo is a rolling release distribution, the `jgkim/gentoo-base` tag will always point the most recently built image. This image lacks build tools such as GCC, Binutils, Libtool, Autotools, etc. Thus, binary packages can only be emerged with this image. To build packages from source, the image tagged with `jgkim/gentoo-build` should be used. For example, you can build a pacakage called `banner` by using `docker run -ti --rm -v $HOME/packages:/usr/portage/packages jgkim/gentoo-build banner`. It is suggested to build packages in seperate containers, and then to emerge those binary packages in the base image for dockerizing.
+
+You can find a reference Dockerfile and build details at [the Github repository](http://github.com/jgkim/gentoo-docker). This image has been built with the [Packer](http://packer.io/) template instead of the Dockerfile.
 
 # Supported Docker versions
 
